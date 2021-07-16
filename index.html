@@ -26,7 +26,57 @@
       </div>
     </div>
     <script src="TemplateData/webble.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
     <script>
+      // ======== MQTTここから =======
+      // MQTTクライアント生成
+      var client = new Paho.MQTT.Client(
+        "localhost",
+        1883,
+        "web_" + parseInt(Math.random() * 100, 10));
+
+      // コールバックの定義
+      client.onConnectionLost = onConnectionLost; // 接続が切れたとき
+      client.onMessageArrived = onMessageArrived; // メッセージ受信したとき
+
+      // 接続
+      var options = {
+        useSSL: false,
+        onSuccess:onConnect, // 接続したときのコールバック
+        onFailure:doFail // 失敗したときのコールバック
+      }
+      client.connect(options);
+
+      // 接続したとき
+      function onConnect() {
+        console.log("onConnect");
+        
+        // トピックを購読する
+        client.subscribe("aaa");
+        
+        // トピックにメッセージを発行してみる
+        message = new Paho.MQTT.Message("Hello, World!");
+        message.destinationName = "aaa";
+        client.send(message);
+      }
+      
+      // 失敗したとき
+      function doFail(e){
+        console.log(e);
+      }
+
+      // 接続が切れたとき
+      function onConnectionLost(responseObject) {
+        if (responseObject.errorCode !== 0) {
+          console.log("onConnectionLost:"+responseObject.errorMessage);
+        }
+      }
+
+      // メッセージを受信したとき
+      function onMessageArrived(message) {
+        console.log("onMessageArrived:"+message.payloadString);
+      }
+
       var buildUrl = "Build";
       var loaderUrl = buildUrl + "/WebGL_UI.loader.js";
       var config = {
